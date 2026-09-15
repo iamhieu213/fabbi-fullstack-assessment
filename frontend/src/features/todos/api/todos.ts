@@ -34,7 +34,7 @@ interface UpdateTodoRequest {
 
 export function useTodos(page: number = 1, size: number = 10000) {
   return useQuery({
-    queryKey: ["todos"],
+    queryKey: ["todos", page, size],
     queryFn: async (): Promise<TodoListResponse> => {
       const response = await api.get("/todos", {
         params: { page, size },
@@ -92,7 +92,10 @@ export function useUpdateTodo() {
 
       return { previousTodos };
     },
-    onError: () => {
+    onError: (_err, _variables, context) => {
+      if (context?.previousTodos) {
+        queryClient.setQueryData(["todos"], context.previousTodos);
+      }
       toast.error("Failed to update todo");
     },
     onSettled: () => {
